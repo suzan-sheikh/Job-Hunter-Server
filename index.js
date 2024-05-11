@@ -13,7 +13,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ykkxidd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ykkxidd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+const uri = 'mongodb://localhost:27017'
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -28,7 +30,7 @@ async function run() {
   try {
 
     const jobsCollection = client.db('freelancer').collection('jobs')
-    const postJobCollection = client.db('freelancer').collection('postJobs')
+    const appliedJobCollection = client.db('freelancer').collection('appliedJobs')
 
     // get all data from DB
     app.get('/jobs', async(req, res) => {
@@ -45,9 +47,16 @@ async function run() {
     })
 
     // save job to mongoDB
-    app.post('/jobs', async(req, res) => {
+    app.post('/job', async(req, res) => {
+      const jobData = req.body;
+      const result = await jobsCollection.insertOne(jobData)
+      res.send(result)
+    })
+    
+    // applied Jobs to mongoDB
+    app.post('/applyJob', async(req, res) => {
       const postData = req.body;
-      const result = await postJobCollection.insertOne(postData)
+      const result = await appliedJobCollection.insertOne(postData)
       res.send(result)
     })
 
@@ -72,6 +81,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`server running on', ${port}`);
 });
-
-//   freelancer
-//   RPkJEgqZj4Or4Epg
