@@ -28,7 +28,7 @@ async function run() {
   try {
 
     const jobsCollection = client.db('freelancer').collection('jobs')
-    const bidsCollection = client.db('freelancer').collection('bids')
+    const postJobCollection = client.db('freelancer').collection('postJobs')
 
     // get all data from DB
     app.get('/jobs', async(req, res) => {
@@ -37,7 +37,6 @@ async function run() {
     })
     
     // get a single job data
-
     app.get('/job/:id', async (req, res) => {
       const id = req.params.id
       const query = { _id: new ObjectId(id) }
@@ -45,6 +44,12 @@ async function run() {
       res.send(result)
     })
 
+    // save job to mongoDB
+    app.post('/jobs', async(req, res) => {
+      const postData = req.body;
+      const result = await postJobCollection.insertOne(postData)
+      res.send(result)
+    })
 
     
 
