@@ -15,7 +15,7 @@ app.use(express.json());
 
 // const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ykkxidd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
-const uri = 'mongodb://localhost:27017'
+const uri = "mongodb://localhost:27017";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -28,78 +28,86 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+    const jobsCollection = client.db("freelancer").collection("jobs");
+    const appliedJobCollection = client
+      .db("freelancer")
+      .collection("appliedJobs");
 
-    const jobsCollection = client.db('freelancer').collection('jobs')
-    const appliedJobCollection = client.db('freelancer').collection('appliedJobs')
+      // jwt generate
+
+
+
+
+
+
+
 
     // get all data from DB
-    app.get('/jobs', async(req, res) => {
-        const result = await jobsCollection.find().toArray()
-        res.send(result)        
-    })
-    
+    app.get("/jobs", async (req, res) => {
+      const result = await jobsCollection.find().toArray();
+      res.send(result);
+    });
+
     // get a single job data
-    app.get('/job/:id', async (req, res) => {
-      const id = req.params.id
-      const query = { _id: new ObjectId(id) }
-      const result = await jobsCollection.findOne(query)
-      res.send(result)
-    })
+    app.get("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobsCollection.findOne(query);
+      res.send(result);
+    });
 
-    // get data filter by email 
-    app.get('/jobs/:email', async(req, res) => {
-      const email = req.params.email
-      const query = {'buyer.email': email }
-      const result = await jobsCollection.find(query).toArray()
-      res.send(result)
-    })
+    // get data filter by email
+    app.get("/jobs/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { "buyer.email": email };
+      const result = await jobsCollection.find(query).toArray();
+      res.send(result);
+    });
 
+    // get data filter by email
+    app.get("/applyJob/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await appliedJobCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // save job to mongoDB
-    app.post('/job', async(req, res) => {
+    app.post("/job", async (req, res) => {
       const jobData = req.body;
-      const result = await jobsCollection.insertOne(jobData)
-      res.send(result)
-    })
+      const result = await jobsCollection.insertOne(jobData);
+      res.send(result);
+    });
 
     // update job in mongoDB
-    app.put('/job/:id', async(req, res) => {
-      const id = req.params.id
-      const jobData = req.body
-      const query = {_id: new ObjectId(id)}
-      const options = {upsert: true}
+    app.put("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const jobData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
       const updateDoc = {
-        $set:{
+        $set: {
           ...jobData,
         },
-      }
-      const result = await jobsCollection.updateOne(query, updateDoc, options)
-      res.send(result)
-    })
+      };
+      const result = await jobsCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
 
-
-
-    
     // applied Jobs to mongoDB
-    app.post('/applyJob', async(req, res) => {
+    app.post("/applyJob", async (req, res) => {
       const postData = req.body;
-      const result = await appliedJobCollection.insertOne(postData)
-      res.send(result)
-    })
+      const result = await appliedJobCollection.insertOne(postData);
+      res.send(result);
+    });
 
     // delete a job data
-    app.delete('/job/:id', async(req, res) => {
-      const id = req.params.id
-      const query = {_id: new ObjectId(id)}
-      const result = await jobsCollection.deleteOne(query)
-      res.send(result)
-    })
-
-
-
-    
-
-
+    app.delete("/job/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await jobsCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
