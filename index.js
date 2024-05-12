@@ -99,21 +99,23 @@ async function run() {
     app.get("/jobs/:email", verifyToken, async (req, res) => {
       const tokenEmail = req.user.email;
       const email = req.params.email;
-
       console.log("tokenEmail:", tokenEmail, "userEmail", email);
-
       if (tokenEmail !== email) {
         return res.status(403).send({ message: "forbidden access" });
       }
-
       const query = { "buyer.email": email };
       const result = await jobsCollection.find(query).toArray();
       res.send(result);
     });
 
     // get data filter by email
-    app.get("/applyJob/:email", async (req, res) => {
+    app.get("/applyJob/:email", verifyToken, async (req, res) => {
+      const tokenEmail = req.user.email;
       const email = req.params.email;
+      console.log("tokenEmail:", tokenEmail, "userEmail", email);
+      if (tokenEmail !== email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
       const query = { email };
       const result = await appliedJobCollection.find(query).toArray();
       res.send(result);
