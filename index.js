@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 4000;
@@ -33,13 +35,28 @@ async function run() {
       .db("freelancer")
       .collection("appliedJobs");
 
-      // jwt generate
+    // jwt generate
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "30d",
+      });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      }).send({success: true})
+    });
 
-
-
-
-
-
+    // clear token
+    app.get('/logout', (req, res) => {
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        maxAge: 0,
+      }).send({success: true})
+    })
 
 
     // get all data from DB
