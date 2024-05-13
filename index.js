@@ -145,6 +145,18 @@ async function run() {
 
     // applied Jobs to mongoDB
     app.post("/applyJob", async (req, res) => {
+
+      // check if already apply
+
+      // const query = {
+      //   email: applyJob.email,
+      //   jobId: applyJob.jobId
+      // }
+      // const alreadyApply = await appliedJobCollection.findOne(query)
+      // if(alreadyApply){
+      //   return res.status(400).send('You already Apply this job')
+      // }
+
       const postData = req.body;
       const result = await appliedJobCollection.insertOne(postData);
       res.send(result);
