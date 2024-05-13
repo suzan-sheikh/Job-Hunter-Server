@@ -167,6 +167,19 @@ async function run() {
 
       const postData = req.body;
       const result = await appliedJobCollection.insertOne(postData);
+
+      // update Job Applicant Number
+      
+      // const updateDoc={
+      //   $set:{$inc: {jobId: 1}}
+      // }      
+      // const jobQuery = {_id: new ObjectId(postData.jobId)} 
+      // const updateJobNumber = appliedJobCollection.updateOne(jobQuery, updateDoc)
+      // console.log(updateJobNumber);
+
+
+
+
       res.send(result);
     });
 
