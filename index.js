@@ -8,7 +8,11 @@ const port = process.env.PORT || 4000;
 const app = express();
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: [
+    "http://localhost:5173",
+    "https://upwork-8699b.web.app",
+    "https://upwork-8699b.firebaseapp.com",
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -47,6 +51,15 @@ const client = new MongoClient(uri, {
   },
 });
 
+
+const cookeOption = {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  secure: process.env.NODE_ENV === "production" ? true : false,
+}
+
+
+
 async function run() {
   try {
     const jobsCollection = client.db("freelancer").collection("jobs");
@@ -61,11 +74,7 @@ async function run() {
         expiresIn: "30d",
       });
       res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        })
+        .cookie("token", token, cookeOption)
         .send({ success: true });
     });
 
@@ -74,8 +83,8 @@ async function run() {
       res
         .clearCookie("token", {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
           sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+          secure: process.env.NODE_ENV === "production" ? true : false,
           maxAge: 0,
         })
         .send({ success: true });
@@ -171,23 +180,23 @@ async function run() {
 
     // data for pagination
     app.get("/jobsCount", async (req, res) => {
-      const search = req.query.search
+      const search = req.query.search;
 
       let query = {
-        job_title: { $regex: search, $options: 'i' },
-      }
+        job_title: { $regex: search, $options: "i" },
+      };
       const count = await jobsCollection.countDocuments(query);
       res.send({ count });
     });
 
     app.get("/allJobs", async (req, res) => {
       const size = parseInt(req.query.size);
-      const page = parseInt(req.query.page)-1;
-      const search = req.query.search
+      const page = parseInt(req.query.page) - 1;
+      const search = req.query.search;
 
       let query = {
-        job_title: { $regex: search, $options: 'i' },
-      }
+        job_title: { $regex: search, $options: "i" },
+      };
 
       const result = await jobsCollection
         .find(query)
@@ -198,7 +207,7 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
