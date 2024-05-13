@@ -171,15 +171,26 @@ async function run() {
 
     // data for pagination
     app.get("/jobsCount", async (req, res) => {
-      const count = await jobsCollection.countDocuments();
+      const search = req.query.search
+
+      let query = {
+        job_title: { $regex: search, $options: 'i' },
+      }
+      const count = await jobsCollection.countDocuments(query);
       res.send({ count });
     });
 
     app.get("/allJobs", async (req, res) => {
       const size = parseInt(req.query.size);
       const page = parseInt(req.query.page)-1;
+      const search = req.query.search
+
+      let query = {
+        job_title: { $regex: search, $options: 'i' },
+      }
+
       const result = await jobsCollection
-        .find()
+        .find(query)
         .skip(page * size)
         .limit(size)
         .toArray();
