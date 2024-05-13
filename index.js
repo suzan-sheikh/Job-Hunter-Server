@@ -145,7 +145,6 @@ async function run() {
 
     // applied Jobs to mongoDB
     app.post("/applyJob", async (req, res) => {
-
       // check if already apply
 
       // const query = {
@@ -167,6 +166,23 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobsCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // data for pagination
+    app.get("/jobsCount", async (req, res) => {
+      const count = await jobsCollection.countDocuments();
+      res.send({ count });
+    });
+
+    app.get("/allJobs", async (req, res) => {
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page)-1;
+      const result = await jobsCollection
+        .find()
+        .skip(page * size)
+        .limit(size)
+        .toArray();
       res.send(result);
     });
 
