@@ -112,19 +112,6 @@ async function run() {
       res.send(result);
     });
 
-    // get data filter by email
-    // app.get("/applyJob/:email", verifyToken, async (req, res) => {
-    //   const tokenEmail = req.user.email;
-    //   const email = req.params.email;
-    //   console.log("tokenEmail:", tokenEmail, "userEmail", email);
-    //   if (tokenEmail !== email) {
-    //     return res.status(403).send({ message: "forbidden access" });
-    //   }
-    //   const query = { email };
-    //   const result = await appliedJobCollection.find(query).toArray();
-    //   res.send(result);
-    // });
-
     // save job to mongoDB
     app.post("/job", async (req, res) => {
       const jobData = req.body;
@@ -241,6 +228,8 @@ async function run() {
       if (filter) {
         query.category = filter;
       }
+
+      console.log(query);
     
       try {
         // Find applied jobs based on the query
@@ -252,11 +241,6 @@ async function run() {
       }
     });
     
-
-
-
-
-
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
