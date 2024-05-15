@@ -1,9 +1,10 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require("dotenv").config();
+
 const port = process.env.PORT || 4000;
 const app = express();
 
@@ -147,13 +148,12 @@ async function run() {
       const result = await appliedJobCollection.insertOne(postData);
 
       // update Job Applicant Number
-
-      // const updateDoc={
-      //   $set:{$inc: {jobId: 1}}
-      // }
-      // const jobQuery = {_id: new ObjectId(postData.jobId)}
-      // const updateJobNumber = appliedJobCollection.updateOne(jobQuery, updateDoc)
-      // console.log(updateJobNumber);
+      const updateDoc = {
+        $inc: { job_applicant_number: 1 },
+      };
+      const jobQuery = { _id: new ObjectId(postData.jobId) };
+      const updateJobNumber = jobsCollection.updateOne(jobQuery, updateDoc);
+      console.log(updateJobNumber);
 
       res.send(result);
     });
