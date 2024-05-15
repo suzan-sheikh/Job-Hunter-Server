@@ -1,5 +1,11 @@
-# Logs
-logs
+# Ignore logs
+logs/
+
+# Ignore environment files
 .env
-.vercel
-node_modules
+
+# Ignore Vercel files
+.vercel/
+
+# Ignore node modules
+node_modules/
