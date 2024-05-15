@@ -85,12 +85,6 @@ async function run() {
         .send({ success: true });
     });
 
-    // get all data from DB
-    app.get("/jobs", async (req, res) => {
-      const result = await jobsCollection.find().toArray();
-      res.send(result);
-    });
-
     // get a single job data
     app.get("/job/:id", async (req, res) => {
       const id = req.params.id;
@@ -136,8 +130,7 @@ async function run() {
 
     // applied Jobs to mongoDB
     app.post("/applyJob", async (req, res) => {
-      
-      const applyData = req.body
+      const applyData = req.body;
 
       // check if its a duplicate request
       const query = {
@@ -147,9 +140,7 @@ async function run() {
       const alreadyApplied = await appliedJobCollection.findOne(query);
 
       if (alreadyApplied) {
-        return res
-          .status(400)
-          .send("already Apply");
+        return res.status(400).send("already Apply");
       }
 
       const postData = req.body;
@@ -174,10 +165,6 @@ async function run() {
       const result = await jobsCollection.deleteOne(query);
       res.send(result);
     });
-
-
-
-
 
     // data for pagination
     app.get("/jobsCount", async (req, res) => {
@@ -207,30 +194,37 @@ async function run() {
       res.send(result);
     });
 
+    // get all data from DB
+    app.get("/jobsSearch", async (req, res) => {
+      const search = req.query.search;
+      let query = {};
+      if (search) {
+        query.job_title = { $regex: search, $options: "i" };
+      }
 
-
-
+      const result = await jobsCollection.find(query).toArray();
+      res.send(result);
+    });
 
     app.get("/applyJob/:email", verifyToken, async (req, res) => {
       const tokenEmail = req.user.email;
       const email = req.params.email;
       const filter = req.query.filter;
-      
+
       // Check if the token email matches the requested email
       if (tokenEmail !== email) {
         return res.status(403).send({ message: "Forbidden access" });
-      } 
-    
+      }
       // Define the base query with the email
       let query = { email };
-    
+
       // If a filter is provided, add it to the query
       if (filter) {
         query.category = filter;
       }
 
       console.log(query);
-    
+
       try {
         // Find applied jobs based on the query
         const result = await appliedJobCollection.find(query).toArray();
@@ -240,7 +234,6 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
-    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
