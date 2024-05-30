@@ -63,6 +63,7 @@ async function run() {
   try {
     const jobsCollection = client.db("freelancer").collection("jobs");
     const feedbackCollection = client.db("freelancer").collection("feedback");
+    const userCollection = client.db("freelancer").collection("users");
 
     const appliedJobCollection = client
       .db("freelancer")
@@ -117,10 +118,9 @@ async function run() {
       res.send(result);
     });
 
-
-    const sendEmail = (emailAddress, emailData)=> {
+    const sendEmail = (emailAddress, emailData) => {
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         host: "smtp.gmail.email",
         port: 587,
         secure: false, // Use `true` for port 465, `false` for all other ports
@@ -128,8 +128,8 @@ async function run() {
           user: process.env.TRANSPORTER_EMAIL,
           pass: process.env.TRANSPORTER_PASS,
         },
-      });  
-      
+      });
+
       // verify transporter
       transporter.verify(function (error, success) {
         if (error) {
@@ -143,24 +143,79 @@ async function run() {
         to: emailAddress, // list of receivers
         subject: emailData.subject, // Subject line
         html: emailData.message, // html body
-      }      
+      };
       transporter.sendMail(mailBody, (error, info) => {
-        if(error){
-          console.log(error)
-        }else{
-          console.log('email sent:', + info.response);
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("email sent:", +info.response);
         }
       });
-    }
+    };
 
     // feedback save to mongoDB
     app.post("/feedback", async (req, res) => {
       const feedback = req.body;
       const result = await feedbackCollection.insertOne(feedback);
       sendEmail(feedback?.email, {
-        subject: 'Thank for Your Feedback',
-        message: 'Dear User, Thank you for taking the time to provide us with your valuable feedback. We truly appreciate your input and are committed to using it to improve our services. Best regards, Md Suzan Sheikh'
-      })
+        subject: "Thank for Your Feedback",
+        message:
+          "Dear User, Thank you for taking the time to provide us with your valuable feedback. We truly appreciate your input and are committed to using it to improve our services. Best regards, Md Suzan Sheikh",
+      });
+      res.send(result);
+    });
+
+    // save a user in db
+    app.put("/user", async (req, res) => {
+      const user = req.body;
+
+      const query = { email: user?.email };
+      const isExist = await userCollection.findOne(query);
+
+      if (isExist) {
+        if (user.status === "Requested") {
+          const result = await userCollection.updateOne(query, {
+            $set: { status: user?.status },
+          });
+          return res.send(result);
+        } else {
+          return res.send(isExist);
+        }
+      }
+
+      // save user for the first time
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          ...user,
+          timestamp: Date.now(),
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+
+      // Welcome Mail
+      sendEmail(user?.email, {
+        subject: "Welcome to JobHunter",
+        message: `Dear User,
+
+          Welcome to Job Hunter!
+          
+          We are thrilled to have you join our community of job seekers and career professionals. Whether you're here to find your dream job, network with industry leaders, or access our career resources, we are committed to providing you with the best experience possible.
+          
+          To get started, we recommend exploring the following features:
+          - **Job Search**: Browse thousands of job listings tailored to your skills and preferences.
+          - **Career Resources**: Access articles, tips, and guides to help you succeed in your job search.
+          - **Profile Setup**: Complete your profile to make it easier for employers to find you.
+          
+          If you have any questions or need assistance, our support team is here to help. Feel free to reach out to us at support@jobhunter.com.
+          
+          Thank you for choosing Job Hunter. We wish you the best of luck in your job search journey!
+          
+          Best regards,
+          The Job Hunter Team
+          mdsuzanskh@gmail.com`,
+      });
+
       res.send(result);
     });
 
