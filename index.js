@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -61,6 +62,8 @@ const cookeOption = {
 async function run() {
   try {
     const jobsCollection = client.db("freelancer").collection("jobs");
+    const feedbackCollection = client.db("freelancer").collection("feedback");
+
     const appliedJobCollection = client
       .db("freelancer")
       .collection("appliedJobs");
@@ -111,6 +114,53 @@ async function run() {
     app.post("/job", async (req, res) => {
       const jobData = req.body;
       const result = await jobsCollection.insertOne(jobData);
+      res.send(result);
+    });
+
+
+    const sendEmail = (emailAddress, emailData)=> {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: "smtp.gmail.email",
+        port: 587,
+        secure: false, // Use `true` for port 465, `false` for all other ports
+        auth: {
+          user: process.env.TRANSPORTER_EMAIL,
+          pass: process.env.TRANSPORTER_PASS,
+        },
+      });  
+      
+      // verify transporter
+      transporter.verify(function (error, success) {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("Server is ready to take our messages");
+        }
+      });
+      const mailBody = {
+        from: `"JobHunter" <${process.env.TRANSPORTER_EMAIL}>`, // sender address
+        to: emailAddress, // list of receivers
+        subject: emailData.subject, // Subject line
+        html: emailData.message, // html body
+      }      
+      transporter.sendMail(mailBody, (error, info) => {
+        if(error){
+          console.log(error)
+        }else{
+          console.log('email sent:', + info.response);
+        }
+      });
+    }
+
+    // feedback save to mongoDB
+    app.post("/feedback", async (req, res) => {
+      const feedback = req.body;
+      const result = await feedbackCollection.insertOne(feedback);
+      sendEmail(feedback?.email, {
+        subject: 'Thank for Your Feedback',
+        message: 'Dear User, Thank you for taking the time to provide us with your valuable feedback. We truly appreciate your input and are committed to using it to improve our services. Best regards, Md Suzan Sheikh'
+      })
       res.send(result);
     });
 
